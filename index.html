@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS System - Gateway Authentication</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        // Clear out any stale session values immediately when visiting the login screen
+        localStorage.clear();
+
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        goldMain: '#FFBC0D', 
+                        mcdRed: '#DA291C',  
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* CSS to match the exact spacing and design elements of the reference login box */
+        .login-box-container {
+            border: 2px solid #FFFFFF;
+            border-radius: 20px;
+            padding: 40px 32px;
+            width: 100%;
+            max-width: 480px;
+        }
+
+        .input-label-spacing {
+            color: #FFFFFF;
+            font-weight: 600;
+            font-size: 14px;
+            padding-left: 16px;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .pill-input-field {
+            width: 100%;
+            background-color: #FFFFFF;
+            color: #374151;
+            border-radius: 9999px;
+            padding: 14px 24px;
+            font-size: 16px;
+            font-weight: 500;
+            outline: none;
+            border: 2px solid transparent;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .pill-input-field::placeholder {
+            color: #9CA3AF;
+        }
+
+        .pill-input-field:focus {
+            border-color: rgba(218, 41, 28, 0.4);
+        }
+
+        .brand-action-button {
+            width: 220px;
+            background-color: #DA291C;
+            color: #FFFFFF;
+            font-weight: 700;
+            font-size: 20px;
+            padding: 12px 0;
+            border-radius: 9999px;
+            transition: all 0.2s ease-in-out;
+            text-align: center;
+        }
+
+        .brand-action-button:hover {
+            background-color: #B91C1C;
+        }
+
+        .brand-action-button:active {
+            transform: scale(0.98);
+        }
+
+        .terminal-divider-rule {
+            width: 100%;
+            max-width: 480px;
+            height: 1.5px;
+            background-color: rgba(255, 255, 255, 0.4);
+            margin-bottom: 32px;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex overflow-hidden select-none bg-goldMain font-sans">
+
+    <div class="hidden md:flex md:w-1/2 h-full flex-col">
+        <div class="h-[35%] w-full bg-amber-700 relative overflow-hidden">
+            <img src="RIDE_THE_ARCHES_STOREFRONT.jpg" alt="Ride the Arches Promo" class="w-full h-full object-cover">
+        </div>
+
+        <div class="h-[15%] bg-mcdRed flex flex-col justify-center items-center text-center px-12 text-white z-10 shadow-lg">
+            <h2 class="text-2xl lg:text-3xl font-black tracking-wide uppercase">RIDE THE ARCHES</h2>
+            <p class="text-[11px] lg:text-xs text-white/95 font-normal max-w-md mt-2 leading-relaxed">
+                McDonald's Ride the Arches is a world first that encourages cyclists across the country to keep riding from arch to arch. With stores turned into a cycling and refueling station, enjoy biking and dining these scenic routes!
+            </p>
+        </div>
+
+        <div class="flex-1 w-full bg-amber-900 relative overflow-hidden">
+            <img src="McDo_Ride_The_Arches_Photo_02.jpg" alt="McDonalds Storefront" class="w-full h-full object-cover">
+        </div>
+    </div>
+
+    <div class="w-full md:w-1/2 h-full bg-goldMain flex flex-col justify-center items-center px-6 lg:px-20 relative">
+        
+        <div class="text-center mb-4">
+            <h1 class="text-white text-6xl lg:text-7xl font-bold tracking-normal drop-shadow-sm">POS-1</h1>
+            <p class="text-white text-sm font-semibold tracking-wider uppercase mt-2">Mobile Kiosk</p>
+        </div>
+
+        <div class="terminal-divider-rule"></div>
+
+        <div class="login-box-container flex flex-col space-y-5">
+            
+            <div>
+                <label class="input-label-spacing">Enter user name</label>
+                <div class="relative">
+                    <input type="text" id="terminal-username" 
+                           class="pill-input-field" 
+                           placeholder="User@123"
+                           autocomplete="off">
+                </div>
+            </div>
+            
+            <div>
+                <label class="input-label-spacing">Enter password</label>
+                <div class="relative">
+                    <input type="password" id="terminal-password" 
+                           class="pill-input-field" 
+                           placeholder="Password123">
+                </div>
+            </div>
+
+            <div class="pt-4 flex justify-center">
+                <button id="login-btn" class="brand-action-button">
+                    <span>Login</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyB4eskS5jRMVbRDs9vNSLuCDdpTUTGsM-E",
+            authDomain: "my-kiosk-e95a6.firebaseapp.com",
+            databaseURL: "https://my-kiosk-e95a6-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "my-kiosk-e95a6",
+            storageBucket: "my-kiosk-e95a6.firebasestorage.app",
+            messagingSenderId: "681380961969",
+            appId: "1:681380961969:web:60de9dc3cec8a824b6cc90"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        async function validateTerminalRouting() {
+            const rawUsername = document.getElementById('terminal-username').value.trim();
+            const passwordInput = document.getElementById('terminal-password').value.trim();
+            const loginBtn = document.getElementById('login-btn');
+
+            if (!rawUsername || !passwordInput) {
+                alert("Please type in both your Username and Password.");
+                return;
+            }
+
+            const sanitizedUsernamePath = rawUsername.replace(/\./g, ',');
+
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = `<span>Checking...</span>`;
+
+            try {
+                const dbRef = ref(db);
+                const snapshot = await get(child(dbRef, `accounts/${sanitizedUsernamePath}`));
+
+                if (snapshot.exists()) {
+                    const userData = snapshot.val();
+
+                    if (String(userData.password) === String(passwordInput)) {
+                        // 1. Save standard profile data
+                        localStorage.setItem('terminal_user', rawUsername);
+
+                        // 2. Generate security parameters matched with jollibee.html guards
+                        const generatedToken = "token_" + Math.random().toString(36).substring(2) + Date.now().toString(36);
+                        const expirationTimestamp = (Date.now() + (30 * 60 * 1000)).toString(); // 30 mins lifetime
+                        const targetPage = userData.target === 'jollibee' ? 'jollibee.html' : 'mcdo.html';
+
+                        localStorage.setItem('pos_session_token', generatedToken);
+                        localStorage.setItem('pos_target_route', targetPage);
+                        localStorage.setItem('pos_session_expiry', expirationTimestamp);
+
+                        // 3. Route to target interface
+                        if (userData.target === 'jollibee') {
+                            window.location.replace("jollibee.html");
+                        } else if (userData.target === 'mcdo') {
+                            window.location.replace("mcdo.html");
+                        } else {
+                            alert("Target configuration error. Found: " + userData.target);
+                            resetButtonState();
+                        }
+                    } else {
+                        alert("Wrong password. Please try again.");
+                        resetButtonState();
+                    }
+                } else {
+                    alert(`Account target context "${rawUsername}" not found.`);
+                    resetButtonState();
+                }
+            } catch (error) {
+                console.error(error);
+                alert("Firebase connection failed: " + error.message);
+                resetButtonState();
+            }
+        }
+
+        function resetButtonState() {
+            const loginBtn = document.getElementById('login-btn');
+            loginBtn.disabled = false;
+            loginBtn.innerHTML = `<span>Login</span>`;
+        }
+
+        document.getElementById('login-btn').addEventListener('click', validateTerminalRouting);
+        document.getElementById('terminal-username').addEventListener('keypress', (e) => { if (e.key === 'Enter') validateTerminalRouting(); });
+        document.getElementById('terminal-password').addEventListener('keypress', (e) => { if (e.key === 'Enter') validateTerminalRouting(); });
+    </script>
+</body>
+</html>
