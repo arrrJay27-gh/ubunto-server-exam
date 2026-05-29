@@ -53,8 +53,35 @@ sudo ufw allow 'Nginx Full'
 sudo ufw status
 ```
 
+## Deploy from Windows with your SSH key
+
+From the project folder in PowerShell:
+
+```powershell
+Set-Location "c:\Users\Arnulfo\OneDrive\Desktop\POS-2"
+.\deploy\ssh-deploy.ps1 -Server "YOUR_USER@YOUR_SERVER_IP"
+```
+
+Example:
+
+```powershell
+.\deploy\ssh-deploy.ps1 -Server "ubuntu@192.168.1.50"
+```
+
+Or run SSH yourself (same thing):
+
+```powershell
+ssh YOUR_USER@YOUR_SERVER_IP "curl -fsSL https://raw.githubusercontent.com/arrrJay27-gh/ubunto-server-exam/main/deploy/ubuntu-setup.sh | bash"
+```
+
+Custom key file:
+
+```powershell
+.\deploy\ssh-deploy.ps1 -Server "user@10.0.0.5" -IdentityFile "$env:USERPROFILE\.ssh\id_rsa"
+```
+
 ## What you need
 
 - Ubuntu server IP address (e.g. `192.168.1.50` or a cloud public IP)
 - SSH username (often `ubuntu` on AWS, or your own user)
-- SSH key or password to log in: `ssh username@SERVER_IP`
+- Your SSH private key (default: `~/.ssh/id_rsa` or `id_ed25519`)
